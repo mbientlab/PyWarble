@@ -1,0 +1,5 @@
+/build/
+/dist/
+/bleat.egg-info/
+mbientlab/bleat/*.so*
+*.pyc
