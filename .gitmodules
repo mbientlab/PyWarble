@@ -1,0 +1,3 @@
+[submodule "bleat"]
+	path = bleat
+	url = git@github.com:mbientlab/bleat.git
