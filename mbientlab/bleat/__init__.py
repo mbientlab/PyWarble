@@ -30,11 +30,11 @@ class GattChar(Structure):
     pass
 
 FnVoid_VoidP_BleatGattP_CharP = CFUNCTYPE(None, c_void_p, POINTER(Gatt), c_char_p)
-FnVoid_VoidP_BleatGattP_Uint = CFUNCTYPE(None, c_void_p, POINTER(Gatt), c_uint)
+FnVoid_VoidP_BleatGattP_Int = CFUNCTYPE(None, c_void_p, POINTER(Gatt), c_int)
 FnVoid_VoidP_BleatScanResultP = CFUNCTYPE(None, c_void_p, POINTER(ScanResult))
 FnVoid_VoidP_BleatGattCharP_CharP = CFUNCTYPE(None, c_void_p, POINTER(GattChar), c_char_p)
-FnVoid_VoidP_BleatGattCharP_UbyteC_Ubyte_CharP = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_char_p)
-FnVoid_VoidP_BleatGattCharP_UbyteC_Ubyte = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte)
+FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte_CharP = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_char_p)
+FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte)
 
 libblepp = CDLL(os.path.join(os.path.dirname(__file__), 'libble++.so'), mode = RTLD_GLOBAL)
 libbleat = CDLL(os.path.join(os.path.dirname(__file__), 'libbleat.so'))
@@ -70,7 +70,7 @@ libbleat.bleat_gatt_delete.restype = None
 libbleat.bleat_gatt_delete.argtypes = [POINTER(Gatt)]
 
 libbleat.bleat_gatt_on_disconnect.restype = None
-libbleat.bleat_gatt_on_disconnect.argtypes = [POINTER(Gatt), c_void_p, FnVoid_VoidP_BleatGattP_Uint]
+libbleat.bleat_gatt_on_disconnect.argtypes = [POINTER(Gatt), c_void_p, FnVoid_VoidP_BleatGattP_Int]
 
 libbleat.bleat_gatt_create.restype = POINTER(Gatt)
 libbleat.bleat_gatt_create.argtypes = [c_char_p]
@@ -81,6 +81,9 @@ libbleat.bleat_gatt_create_with_options.argtypes = [c_int, POINTER(Option)]
 libbleat.bleat_gatt_find_characteristic.restype = POINTER(GattChar)
 libbleat.bleat_gatt_find_characteristic.argtypes = [POINTER(Gatt), c_char_p]
 
+libbleat.bleat_gatt_has_service.restype = c_int
+libbleat.bleat_gatt_has_service.argtypes = [POINTER(Gatt), c_char_p]
+
 libbleat.bleat_gattchar_disable_notifications_async.restype = None
 libbleat.bleat_gattchar_disable_notifications_async.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
 
@@ -88,7 +91,7 @@ libbleat.bleat_gattchar_write_without_resp_async.restype = None
 libbleat.bleat_gattchar_write_without_resp_async.argtypes = [POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
 
 libbleat.bleat_gattchar_read_async.restype = None
-libbleat.bleat_gattchar_read_async.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_UbyteC_Ubyte_CharP]
+libbleat.bleat_gattchar_read_async.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte_CharP]
 
 libbleat.bleat_gattchar_write_async.restype = None
 libbleat.bleat_gattchar_write_async.argtypes = [POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
@@ -97,5 +100,4 @@ libbleat.bleat_gattchar_enable_notifications_async.restype = None
 libbleat.bleat_gattchar_enable_notifications_async.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
 
 libbleat.bleat_gattchar_set_value_changed_handler.restype = None
-libbleat.bleat_gattchar_set_value_changed_handler.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_UbyteC_Ubyte]
-
+libbleat.bleat_gattchar_set_value_changed_handler.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte]
