@@ -1,6 +1,6 @@
 from distutils.dir_util import copy_tree
 from multiprocessing import cpu_count
-from shutil import copy2
+from shutil import move 
 from subprocess import call, STDOUT
 from setuptools import setup
 from setuptools.command.build_py import build_py
@@ -12,6 +12,12 @@ import sys
 machine = "arm" if "arm" in platform.machine() else ("x64" if sys.maxsize > 2**32 else "x86")
 
 class BleatBuild(build_py):
+    @staticmethod
+    def _move(src, dest, basename):
+        for f in os.listdir(src):
+            if (f.startswith(basename)):
+                move(os.path.join(src, f), dest)
+
     def run(self):
         root = os.path.dirname(os.path.abspath(__file__))
 
@@ -27,18 +33,16 @@ class BleatBuild(build_py):
                 raise RuntimeError("Failed to compile bleat.dll")
 
             dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Debug", "bleat.dll")
-            copy2(dll, dest)
+            move(dll, dest)
         elif (platform.system() == 'Linux'):
             if (call(["make", "-C", "bleat", "-j%d" % (cpu_count())], cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile libbleat.so")
 
             so = os.path.join('bleat', 'dist', 'release', 'lib', machine)
-            copy_tree(so, dest)
+            BleatBuild._move(so, dest, 'libbleat.so')
 
             blepp = os.path.join('bleat', 'deps', 'libblepp')
-            copy2(os.path.join(blepp, 'libble++.so'), dest)
-            copy2(os.path.join(blepp, 'libble++.so.0'), dest)
-            copy2(os.path.join(blepp, 'libble++.so.0.5'), dest)
+            BleatBuild._move(blepp, dest, 'libble++.so')
         else:
             raise RuntimeError("pybleat is not supported for the '%s' platform" % platform.system())
 
