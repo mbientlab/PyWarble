@@ -1,5 +1,7 @@
 from ctypes import *
+
 import os
+import platform
 
 class ScanMftData(Structure):
     _fields_ = [
@@ -36,8 +38,14 @@ FnVoid_VoidP_BleatGattCharP_CharP = CFUNCTYPE(None, c_void_p, POINTER(GattChar),
 FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte_CharP = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_char_p)
 FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte)
 
-libblepp = CDLL(os.path.join(os.path.dirname(__file__), 'libble++.so'), mode = RTLD_GLOBAL)
-libbleat = CDLL(os.path.join(os.path.dirname(__file__), 'libbleat.so'))
+if (platform.system() == 'Windows'):
+    libbleat = CDLL(os.path.join(os.path.dirname(__file__), 'bleat.dll'))
+elif (platform.system() == 'Linux'):
+    libblepp = CDLL(os.path.join(os.path.dirname(__file__), 'libble++.so'), mode = RTLD_GLOBAL)
+    libbleat = CDLL(os.path.join(os.path.dirname(__file__), 'libbleat.so'))
+else:
+    raise RuntimeError("pybleat is not supported for the '%s' platform" % platform.system())
+
 
 libbleat.bleat_lib_version.restype = c_char_p
 libbleat.bleat_lib_version.argtypes = None

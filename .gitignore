@@ -2,4 +2,5 @@
 /dist/
 /bleat.egg-info/
 mbientlab/bleat/*.so*
+mbientlab/bleat/*.dll*
 *.pyc

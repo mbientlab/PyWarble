@@ -16,18 +16,31 @@ class BleatBuild(build_py):
         root = os.path.dirname(os.path.abspath(__file__))
 
         if os.path.exists(os.path.join(root, '.git')):
-            status = call(["git", "submodule", "update", "--init", "--recursive"], cwd=root, stderr=STDOUT)
-            if (status != 0):
+            if (call(["git", "submodule", "update", "--init", "--recursive"], cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Could not init git submodule")
 
-        status = call(["make", "-C", "bleat", "-j%d" % (cpu_count())], cwd=root, stderr=STDOUT)
-        if (status != 0):
-            raise RuntimeError("Failed to compile libbleat")
 
-        copy_tree('bleat/dist/release/lib/%s/' % (machine), "mbientlab/bleat")
-        copy2('bleat/deps/libblepp/libble++.so', "mbientlab/bleat")
-        copy2('bleat/deps/libblepp/libble++.so.0', "mbientlab/bleat")
-        copy2('bleat/deps/libblepp/libble++.so.0.5', "mbientlab/bleat")
+        dest = os.path.join("mbientlab", "bleat")
+        if (platform.system() == 'Windows'):
+            vs2017 = os.path.join(root, 'bleat', 'vs2017')
+            if (call(["MSBuild.exe", "bleat.vcxproj", "/p:Platform=%s" % machine], cwd=vs2017, stderr=STDOUT) != 0):
+                raise RuntimeError("Failed to compile bleat.dll")
+
+            dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Debug", "bleat.dll")
+            copy2(dll, dest)
+        elif (platform.system() == 'Linux'):
+            if (call(["make", "-C", "bleat", "-j%d" % (cpu_count())], cwd=root, stderr=STDOUT) != 0):
+                raise RuntimeError("Failed to compile libbleat.so")
+
+            so = os.path.join('bleat', 'dist', 'release', 'lib', machine)
+            copy_tree(so, dest)
+
+            blepp = os.path.join('bleat', 'deps', 'libblepp')
+            copy2(os.path.join(blepp, 'libble++.so'), dest)
+            copy2(os.path.join(blepp, 'libble++.so.0'), dest)
+            copy2(os.path.join(blepp, 'libble++.so.0.5'), dest)
+        else:
+            raise RuntimeError("pybleat is not supported for the '%s' platform" % platform.system())
 
         build_py.run(self)
 
