@@ -6,17 +6,15 @@ import platform
 class ScanMftData(Structure):
     _fields_ = [
         ("value", POINTER(c_ubyte)),
-        ("value_size", c_int),
-        ("company_id", c_ushort)
+        ("value_size", c_uint)
     ]
 
 class ScanResult(Structure):
     _fields_ = [
         ("mac", c_char_p),
         ("name", c_char_p),
-        ("manufacturer_data", POINTER(ScanMftData)),
-        ("manufacturer_data_size", c_int),
-        ("rssi", c_int)
+        ("rssi", c_int),
+        ("private_data", c_void_p)
     ]
 
 class Gatt(Structure):
@@ -56,17 +54,20 @@ libbleat.bleat_lib_config.argtypes = None
 libbleat.bleat_lib_init.restype = None
 libbleat.bleat_lib_init.argtypes = [c_int, POINTER(Option)]
 
-libbleat.bleat_scanner_configure.restype = None
-libbleat.bleat_scanner_configure.argtypes = [c_int, POINTER(Option)]
-
 libbleat.bleat_scanner_stop.restype = None
 libbleat.bleat_scanner_stop.argtypes = None
 
 libbleat.bleat_scanner_start.restype = None
-libbleat.bleat_scanner_start.argtypes = None
+libbleat.bleat_scanner_start.argtypes = [c_int, POINTER(Option)]
 
 libbleat.bleat_scanner_set_handler.restype = None
 libbleat.bleat_scanner_set_handler.argtypes = [c_void_p, FnVoid_VoidP_BleatScanResultP]
+
+libbleat.bleat_scan_result_get_manufacturer_data.restype = POINTER(ScanMftData)
+libbleat.bleat_scan_result_get_manufacturer_data.argtypes = [POINTER(ScanResult), c_ushort]
+
+libbleat.bleat_scan_result_has_service_uuid.restype = c_int
+libbleat.bleat_scan_result_has_service_uuid.argtypes = [POINTER(ScanResult), c_char_p]
 
 libbleat.bleat_gatt_connect_async.restype = None
 libbleat.bleat_gatt_connect_async.argtypes = [POINTER(Gatt), c_void_p, FnVoid_VoidP_BleatGattP_CharP]
