@@ -110,3 +110,9 @@ libbleat.bleat_gattchar_enable_notifications_async.argtypes = [POINTER(GattChar)
 
 libbleat.bleat_gattchar_set_value_changed_handler.restype = None
 libbleat.bleat_gattchar_set_value_changed_handler.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte]
+
+libbleat.bleat_gattchar_get_uuid.restype = c_char_p
+libbleat.bleat_gattchar_get_uuid.argtypes = [POINTER(GattChar)]
+
+libbleat.bleat_gattchar_get_gatt.restype = POINTER(Gatt)
+libbleat.bleat_gattchar_get_gatt.argtypes = [POINTER(GattChar)]
