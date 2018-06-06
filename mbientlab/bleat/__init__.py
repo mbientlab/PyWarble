@@ -1,118 +1,148 @@
-from ctypes import *
+from .cbindings import *
 
-import os
 import platform
+import sys
 
-class ScanMftData(Structure):
-    _fields_ = [
-        ("value", POINTER(c_ubyte)),
-        ("value_size", c_uint)
-    ]
+if sys.version_info[0] == 2:
+    range = xrange
 
-class ScanResult(Structure):
-    _fields_ = [
-        ("mac", c_char_p),
-        ("name", c_char_p),
-        ("rssi", c_int),
-        ("private_data", c_void_p)
-    ]
-
-class Gatt(Structure):
+class BleatException(Exception):
     pass
 
-class Option(Structure):
-    _fields_ = [
-        ("key", c_char_p),
-        ("name", c_char_p)
-    ]
+class Gatt:
+    def __init__(self, address, **kwargs):
+        """
+        Creates a Python Bleat Gatt object
+        @params:
+            address     - Required  : mac address of the board to connect to e.g. E8:C9:8F:52:7B:07
+            hci         - Optional  : mac address of the hci device to use, only applicable on Linux
+            addr_type   - Optional  : ble device adress type, defaults to random
+        """
+        
+        if (len(kwargs) != 0):
+            options = []
 
-class GattChar(Structure):
-    pass
+            options.append(_Option(key="address", value=address))
+            if ('hci' in kwargs and platform.system() == 'Linux'):
+                options.append(_Option(key="hci", value=kwargs['hci']))
+            if ('addr_type' in kwargs):
+                options.append(_Option(key="addr_type", value=kwargs['addr_type']))
 
-FnVoid_VoidP_BleatGattP_CharP = CFUNCTYPE(None, c_void_p, POINTER(Gatt), c_char_p)
-FnVoid_VoidP_BleatGattP_Int = CFUNCTYPE(None, c_void_p, POINTER(Gatt), c_int)
-FnVoid_VoidP_BleatScanResultP = CFUNCTYPE(None, c_void_p, POINTER(ScanResult))
-FnVoid_VoidP_BleatGattCharP_CharP = CFUNCTYPE(None, c_void_p, POINTER(GattChar), c_char_p)
-FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte_CharP = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_char_p)
-FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte = CFUNCTYPE(None, c_void_p, POINTER(GattChar), POINTER(c_ubyte), c_ubyte)
+            coptions = (_Option * len(options))
+            for i in range(0, len(options)):
+                coptions[i] = options[i]
 
-if (platform.system() == 'Windows'):
-    libbleat = CDLL(os.path.join(os.path.dirname(__file__), 'bleat.dll'))
-elif (platform.system() == 'Linux'):
-    libblepp = CDLL(os.path.join(os.path.dirname(__file__), 'libble++.so'), mode = RTLD_GLOBAL)
-    libbleat = CDLL(os.path.join(os.path.dirname(__file__), 'libbleat.so'))
-else:
-    raise RuntimeError("pybleat is not supported for the '%s' platform" % platform.system())
+            self.gatt = libbleat.bleat_gatt_create_with_options(len(options), coptions)
+        else:
+            self.gatt = libbleat.bleat_gatt_create(address)
 
+        self.characteristics = {}
 
-libbleat.bleat_lib_version.restype = c_char_p
-libbleat.bleat_lib_version.argtypes = None
+    def __del__(self):
+        libbleat.bleat_gatt_delete(self.gatt)
+        self.characteristics = {}
 
-libbleat.bleat_lib_config.restype = c_char_p
-libbleat.bleat_lib_config.argtypes = None
+    def connect_async(self, handler):
+        def completed(ctx, caller, msg):
+            if (msg == None):
+                handler(None)
+            else:
+                handler(BleatException(msg))
 
-libbleat.bleat_lib_init.restype = None
-libbleat.bleat_lib_init.argtypes = [c_int, POINTER(Option)]
+        self.connect_handler = FnVoid_VoidP_BleatGattP_CharP(completed)
+        libbleat.bleat_gatt_connect_async(self.gatt, None, self.connect_handler)
 
-libbleat.bleat_scanner_stop.restype = None
-libbleat.bleat_scanner_stop.argtypes = None
+    def disconnect(self):
+        libbleat.bleat_gatt_disconnect(self.gatt)
 
-libbleat.bleat_scanner_start.restype = None
-libbleat.bleat_scanner_start.argtypes = [c_int, POINTER(Option)]
+    def on_disconnect(self, handler):
+        def event_fired(ctx, gattchar, status):
+            self.characteristics = {}
+            handler(status)
 
-libbleat.bleat_scanner_set_handler.restype = None
-libbleat.bleat_scanner_set_handler.argtypes = [c_void_p, FnVoid_VoidP_BleatScanResultP]
+        self.disconnect_handler = FnVoid_VoidP_BleatGattP_Int(event_fired)
+        libbleat.bleat_gatt_on_disconnect(self.gatt, None, self.disconnect_handler)
 
-libbleat.bleat_scan_result_get_manufacturer_data.restype = POINTER(ScanMftData)
-libbleat.bleat_scan_result_get_manufacturer_data.argtypes = [POINTER(ScanResult), c_ushort]
+    def find_characteristic(self, uuid):
+        if (uuid not in self.characteristics):
+            result = libbleat.bleat_gatt_find_characteristic(self.gatt, uuid)
+            self.characteristics[uuid] = GattChar(self, result) if bool(result) else None
+        return self.characteristics[uuid]
 
-libbleat.bleat_scan_result_has_service_uuid.restype = c_int
-libbleat.bleat_scan_result_has_service_uuid.argtypes = [POINTER(ScanResult), c_char_p]
+    def service_exists(self, uuid):
+        return libbleat.bleat_gatt_has_service(self.gatt, uuid) != 0
 
-libbleat.bleat_gatt_connect_async.restype = None
-libbleat.bleat_gatt_connect_async.argtypes = [POINTER(Gatt), c_void_p, FnVoid_VoidP_BleatGattP_CharP]
-    
-libbleat.bleat_gatt_disconnect.restype = None
-libbleat.bleat_gatt_disconnect.argtypes = [POINTER(Gatt)]
+class GattChar:
+    @staticmethod
+    def to_ubyte_pointer(bytes):
+        arr = (c_ubyte * len(bytes))()
+        i = 0
+        for b in bytes:
+            arr[i] = b
+            i = i + 1
 
-libbleat.bleat_gatt_delete.restype = None
-libbleat.bleat_gatt_delete.argtypes = [POINTER(Gatt)]
+        return arr
 
-libbleat.bleat_gatt_on_disconnect.restype = None
-libbleat.bleat_gatt_on_disconnect.argtypes = [POINTER(Gatt), c_void_p, FnVoid_VoidP_BleatGattP_Int]
+    def __init__(self, owner, bleat_char):
+        self.bleat_char = bleat_char
+        self.owner = owner
 
-libbleat.bleat_gatt_create.restype = POINTER(Gatt)
-libbleat.bleat_gatt_create.argtypes = [c_char_p]
+    @property
+    def uuid(self):
+        return libbleat.bleat_gattchar_get_uuid(self.bleat_char).encode("ascii")
 
-libbleat.bleat_gatt_create_with_options.restype = POINTER(Gatt)
-libbleat.bleat_gatt_create_with_options.argtypes = [c_int, POINTER(Option)]
+    @property
+    def gatt(self):
+        return self.owner
 
-libbleat.bleat_gatt_find_characteristic.restype = POINTER(GattChar)
-libbleat.bleat_gatt_find_characteristic.argtypes = [POINTER(Gatt), c_char_p]
+    def _private_write_async(self, fn, value, handler):
+        def completed(ctx, caller, msg):
+            if (msg == None):
+                handler(None)
+            else:
+                handler(BleatException(msg))
+        self.write_handler = FnVoid_VoidP_BleatGattCharP_CharP(completed)
 
-libbleat.bleat_gatt_has_service.restype = c_int
-libbleat.bleat_gatt_has_service.argtypes = [POINTER(Gatt), c_char_p]
+        array = GattChar.to_ubyte_pointer(value)
+        fn(self.bleat_char, array, len(value), None, self.write_handler)
 
-libbleat.bleat_gattchar_disable_notifications_async.restype = None
-libbleat.bleat_gattchar_disable_notifications_async.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
+    def write_async(self, value, handler):
+        self._private_write_async(libbleat.bleat_gattchar_write_async, value, handler)
+        
+    def write_without_resp_async(self, value, handler):
+        self._private_write_async(libbleat.bleat_gattchar_write_without_resp_async, value, handler)
 
-libbleat.bleat_gattchar_write_without_resp_async.restype = None
-libbleat.bleat_gattchar_write_without_resp_async.argtypes = [POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
+    def read_value_async(self, handler):
+        def completed(ctx, caller, pointer, length, msg):
+            if (msg == None):
+                value= cast(pointer, POINTER(c_ubyte * length))
+                handler([value.contents[i] for i in range(0, length)], None)
+            else:
+                handler(None, BleatException(msg))
+        self.read_handler = FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte_CharP(completed)
 
-libbleat.bleat_gattchar_read_async.restype = None
-libbleat.bleat_gattchar_read_async.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte_CharP]
+        libbleat.bleat_gattchar_read_async(self.bleat_char, None, self.read_handler)
 
-libbleat.bleat_gattchar_write_async.restype = None
-libbleat.bleat_gattchar_write_async.argtypes = [POINTER(GattChar), POINTER(c_ubyte), c_ubyte, c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
+    def _private_edit_notifications(self, fn, handler):
+        def completed(ctx, caller, msg):
+            if (msg == None):
+                handler(None)
+            else:
+                handler(BleatException(msg))
+        self.enable_handler = FnVoid_VoidP_BleatGattCharP_CharP(completed)
 
-libbleat.bleat_gattchar_enable_notifications_async.restype = None
-libbleat.bleat_gattchar_enable_notifications_async.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_CharP]
+        fn(self.bleat_char, None, self.enable_handler)
 
-libbleat.bleat_gattchar_set_value_changed_handler.restype = None
-libbleat.bleat_gattchar_set_value_changed_handler.argtypes = [POINTER(GattChar), c_void_p, FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte]
+    def enable_notifications_async(self, handler):
+        self._private_edit_notifications(libbleat.bleat_gattchar_enable_notifications_async, handler)
+        
+    def disable_notifications_async(self, handler):
+        self._private_edit_notifications(libbleat.bleat_gattchar_disable_notifications_async, handler)
 
-libbleat.bleat_gattchar_get_uuid.restype = c_char_p
-libbleat.bleat_gattchar_get_uuid.argtypes = [POINTER(GattChar)]
-
-libbleat.bleat_gattchar_get_gatt.restype = POINTER(Gatt)
-libbleat.bleat_gattchar_get_gatt.argtypes = [POINTER(GattChar)]
+    def set_value_changed_handler(self, handler):
+        def value_converter(ctx, caller, pointer, length):
+            value= cast(pointer, POINTER(c_ubyte * length))
+            handler([value.contents[i] for i in range(0, length)])
+        self.value_changed_wrapper = FnVoid_VoidP_BleatGattCharP_UbyteP_Ubyte(value_converter)
+        
+        libbleat.bleat_gattchar_set_value_changed_handler(self.bleat_char, None, self.value_changed_wrapper)
