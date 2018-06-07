@@ -1,4 +1,5 @@
 from .cbindings import *
+from . import BleatException, str_to_bytes
 import sys
 
 if sys.version_info[0] == 2:
@@ -74,7 +75,7 @@ class ScanResult:
         @params:
             uuid        - Required  : 128-bit UUID string to search for
         """
-        return libbleat.bleat_scan_result_has_service_uuid(self.result, uuid) != 0
+        return libbleat.bleat_scan_result_has_service_uuid(self.result, str_to_bytes(uuid)) != 0
 
     def get_manufacturer_data(self, company_id):
         """

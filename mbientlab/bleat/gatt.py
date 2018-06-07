@@ -1,6 +1,6 @@
 from .cbindings import *
 from .gattchar import GattChar
-from . import BleatException
+from . import BleatException, str_to_bytes, bytes_to_str
 
 class Gatt:
     def __init__(self, address, **kwargs):
@@ -15,11 +15,11 @@ class Gatt:
         if (len(kwargs) != 0):
             options = []
 
-            options.append(_Option(key="address", value=address))
+            options.append(_Option(key="address", value=str_to_bytes(address)))
             if ('hci' in kwargs and platform.system() == 'Linux'):
-                options.append(_Option(key="hci", value=kwargs['hci']))
+                options.append(_Option(key="hci", value=str_to_bytes(kwargs['hci'])))
             if ('addr_type' in kwargs):
-                options.append(_Option(key="addr_type", value=kwargs['addr_type']))
+                options.append(_Option(key="addr_type", value=str_to_bytes(kwargs['addr_type'])))
 
             coptions = (_Option * len(options))
             for i, v in enumerate(options):
@@ -27,7 +27,7 @@ class Gatt:
 
             self.gatt = libbleat.bleat_gatt_create_with_options(len(options), coptions)
         else:
-            self.gatt = libbleat.bleat_gatt_create(address)
+            self.gatt = libbleat.bleat_gatt_create(str_to_bytes(address))
 
         self.characteristics = {}
 
@@ -35,17 +35,21 @@ class Gatt:
         libbleat.bleat_gatt_delete(self.gatt)
         self.characteristics = {}
 
+    @property
+    def is_connected(self):
+        return libbleat.bleat_gatt_is_connected(self.gatt) != 0
+
     def connect_async(self, handler):
         """
         Establishes a connection to the remote device
         @params:
-            handler     - Required  : `(Exception): void` function that will be executed when the connect task is completed
+            handler     - Required  : `(Exception) -> void` function that will be executed when the connect task is completed
         """
         def completed(ctx, caller, msg):
             if (msg == None):
                 handler(None)
             else:
-                handler(BleatException(msg))
+                handler(BleatException(bytes_to_str(msg)))
 
         self.connect_handler = FnVoid_VoidP_BleatGattP_CharP(completed)
         libbleat.bleat_gatt_connect_async(self.gatt, None, self.connect_handler)
@@ -60,7 +64,7 @@ class Gatt:
         """
         Sets a handler to listen for disconnect events
         @params:
-            handler     - Required  : `(int): void` function that will be executed when connection is lost
+            handler     - Required  : `(int) -> void` function that will be executed when connection is lost
         """
         def event_fired(ctx, caller, status):
             self.characteristics = {}
@@ -76,7 +80,7 @@ class Gatt:
             uuid        - Required  : 128-bit UUID string to search for
         """
         if (uuid not in self.characteristics):
-            result = libbleat.bleat_gatt_find_characteristic(self.gatt, uuid)
+            result = libbleat.bleat_gatt_find_characteristic(self.gatt, str_to_bytes(uuid))
             self.characteristics[uuid] = GattChar(self, result) if bool(result) else None
         return self.characteristics[uuid]
 
@@ -86,4 +90,4 @@ class Gatt:
         @params:
             uuid        - Required  : 128-bit UUID string to search for
         """
-        return libbleat.bleat_gatt_has_service(self.gatt, uuid) != 0
+        return libbleat.bleat_gatt_has_service(self.gatt, str_to_bytes(uuid)) != 0

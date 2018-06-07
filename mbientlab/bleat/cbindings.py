@@ -81,6 +81,9 @@ libbleat.bleat_gatt_delete.argtypes = [POINTER(_Gatt)]
 libbleat.bleat_gatt_on_disconnect.restype = None
 libbleat.bleat_gatt_on_disconnect.argtypes = [POINTER(_Gatt), c_void_p, FnVoid_VoidP_BleatGattP_Int]
 
+libbleat.bleat_gatt_is_connected.restype = c_int
+libbleat.bleat_gatt_is_connected.argtypes = [POINTER(_Gatt)]
+
 libbleat.bleat_gatt_create.restype = POINTER(_Gatt)
 libbleat.bleat_gatt_create.argtypes = [c_char_p]
 
