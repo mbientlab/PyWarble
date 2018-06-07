@@ -20,41 +20,43 @@ class BleatBuild(build_py):
 
     def run(self):
         root = os.path.dirname(os.path.abspath(__file__))
+        clibs = os.path.join(root, 'clibs')
 
         if os.path.exists(os.path.join(root, '.git')):
             if (call(["git", "submodule", "update", "--init", "--recursive"], cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Could not init git submodule")
 
-
         dest = os.path.join("mbientlab", "bleat")
         if (platform.system() == 'Windows'):
-            vs2017 = os.path.join(root, 'bleat', 'vs2017')
+            vs2017 = os.path.join(root, clibs, 'vs2017')
             if (call(["MSBuild.exe", "bleat.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"], cwd=vs2017, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile bleat.dll")
 
             dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Release", "bleat.dll")
             move(dll, dest)
         elif (platform.system() == 'Linux'):
-            if (call(["make", "-C", "bleat", "-j%d" % (cpu_count())], cwd=root, stderr=STDOUT) != 0):
+            bleat = os.path.join(clibs, 'bleat')
+            if (call(["make", "-C", bleat, "-j%d" % (cpu_count())], cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile libbleat.so")
 
-            so = os.path.join('bleat', 'dist', 'release', 'lib', machine)
+            so = os.path.join(bleat, 'dist', 'release', 'lib', machine)
             BleatBuild._move(so, dest, 'libbleat.so')
 
-            blepp = os.path.join('bleat', 'deps', 'libblepp')
+            blepp = os.path.join(bleat, 'deps', 'libblepp')
             BleatBuild._move(blepp, dest, 'libble++.so')
         else:
             raise RuntimeError("pybleat is not supported for the '%s' platform" % platform.system())
 
         build_py.run(self)
 
+so_pkg_data = ['libbleat.so*', 'libble++.so*'] if platform.system() == 'Linux' else ['bleat.dll']
 setup(
     name='bleat',
     packages=['mbientlab', 'mbientlab.bleat'],
     version='0.1.0',
     description='Python bindings for MbientLab\'s bleat library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
-    package_data={'mbientlab.bleat': ['libbleat.so*']},
+    package_data={'mbientlab.bleat': so_pkg_data},
     include_package_data=True,
     url='https://github.com/mbientlab/pybleat',
     author='MbientLab',
