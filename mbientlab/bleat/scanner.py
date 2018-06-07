@@ -1,5 +1,5 @@
 from .cbindings import *
-from . import BleatException, str_to_bytes
+from . import BleatException, str_to_bytes, bytes_to_str
 import sys
 
 if sys.version_info[0] == 2:
@@ -53,14 +53,14 @@ class ScanResult:
         """
         Mac address of the scanned device
         """
-        return self.result.mac
+        return bytes_to_str(self.result.mac)
 
     @property
     def name(self):
         """
         Device's advertising name
         """
-        return self.result.name
+        return bytes_to_str(self.result.name)
 
     @property
     def rssi(self):

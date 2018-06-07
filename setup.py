@@ -28,7 +28,7 @@ class BleatBuild(build_py):
 
         dest = os.path.join("mbientlab", "bleat")
         if (platform.system() == 'Windows'):
-            vs2017 = os.path.join(root, clibs, 'vs2017')
+            vs2017 = os.path.join(clibs, 'bleat', 'vs2017')
             if (call(["MSBuild.exe", "bleat.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"], cwd=vs2017, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile bleat.dll")
 
