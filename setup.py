@@ -29,14 +29,14 @@ class BleatBuild(build_py):
         dest = os.path.join("mbientlab", "bleat")
         if (platform.system() == 'Windows'):
             vs2017 = os.path.join(clibs, 'bleat', 'vs2017')
-            if (call(["MSBuild.exe", "bleat.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"], cwd=vs2017, stderr=STDOUT) != 0):
+            if (call(["MSBuild.exe", "bleat.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release", "/p:SkipVersion=1"], cwd=vs2017, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile bleat.dll")
 
             dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Release", "bleat.dll")
             move(dll, dest)
         elif (platform.system() == 'Linux'):
             bleat = os.path.join(clibs, 'bleat')
-            if (call(["make", "-C", bleat, "-j%d" % (cpu_count())], cwd=root, stderr=STDOUT) != 0):
+            if (call(["make", "-C", bleat, "-j%d" % (cpu_count()), "SKIP_VERSION=1"], cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile libbleat.so")
 
             so = os.path.join(bleat, 'dist', 'release', 'lib', machine)
@@ -53,7 +53,7 @@ so_pkg_data = ['libbleat.so*', 'libble++.so*'] if platform.system() == 'Linux' e
 setup(
     name='bleat',
     packages=['mbientlab', 'mbientlab.bleat'],
-    version='0.1.0',
+    version='1.0.0',
     description='Python bindings for MbientLab\'s bleat library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
     package_data={'mbientlab.bleat': so_pkg_data},
