@@ -21,6 +21,8 @@ class BleatBuild(build_py):
     def run(self):
         root = os.path.dirname(os.path.abspath(__file__))
         clibs = os.path.join(root, 'clibs')
+        warble = os.path.join(clibs, 'warble')
+        version_mk = os.path.join(warble, "version.mk")
 
         if os.path.exists(os.path.join(root, '.git')):
             if (call(["git", "submodule", "update", "--init", "--recursive"], cwd=root, stderr=STDOUT) != 0):
@@ -28,15 +30,22 @@ class BleatBuild(build_py):
 
         dest = os.path.join("mbientlab", "warble")
         if (platform.system() == 'Windows'):
-            vs2017 = os.path.join(clibs, 'warble', 'vs2017')
-            if (call(["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release", "/p:SkipVersion=1"], cwd=vs2017, stderr=STDOUT) != 0):
+            args = ["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"]
+            if (os.path.exists(version_mk)):
+                args.append("/p:SkipVersion=1")
+
+            vs2017 = os.path.join(warble, 'vs2017')
+            if (call(args, cwd=vs2017, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile warble.dll")
 
             dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Release", "warble.dll")
             move(dll, dest)
         elif (platform.system() == 'Linux'):
-            warble = os.path.join(clibs, 'warble')
-            if (call(["make", "-C", warble, "-j%d" % (cpu_count()), "SKIP_VERSION=1"], cwd=root, stderr=STDOUT) != 0):
+            args = ["make", "-C", warble, "-j%d" % (cpu_count())]
+            if (os.path.exists(version_mk)):
+                args.append("SKIP_VERSION=1")
+
+            if (call(args, cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Failed to compile libwarble.so")
 
             so = os.path.join(warble, 'dist', 'release', 'lib', machine)
