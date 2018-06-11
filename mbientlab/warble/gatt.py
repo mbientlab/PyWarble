@@ -1,33 +1,38 @@
 from .cbindings import *
+from .cbindings import _Gatt, _Option
 from .gattchar import GattChar
 from . import WarbleException, str_to_bytes, bytes_to_str
+from ctypes import cast, POINTER
+
+import platform
 
 class Gatt:
-    def __init__(self, address, **kwargs):
+    def __init__(self, mac, **kwargs):
         """
         Creates a Python Warble Gatt object
         @params:
-            address     - Required  : mac address of the board to connect to e.g. E8:C9:8F:52:7B:07
+            mac         - Required  : mac address of the board to connect to e.g. E8:C9:8F:52:7B:07
             hci         - Optional  : mac address of the hci device to use, only applicable on Linux
             addr_type   - Optional  : ble device adress type, defaults to random
         """
         
+        self.gatt = cast(None, POINTER(_Gatt))
         if (len(kwargs) != 0):
             options = []
 
-            options.append(_Option(key="address", value=str_to_bytes(address)))
+            options.append(['mac', mac])
             if ('hci' in kwargs and platform.system() == 'Linux'):
-                options.append(_Option(key="hci", value=str_to_bytes(kwargs['hci'])))
+                options.append(['hci', kwargs['hci']])
             if ('addr_type' in kwargs):
-                options.append(_Option(key="addr_type", value=str_to_bytes(kwargs['addr_type'])))
+                options.append(['addr_type', kwargs['addr_type']])
 
-            coptions = (_Option * len(options))
+            coptions = (_Option * len(options))()
             for i, v in enumerate(options):
-                coptions[i] = v
+                coptions[i] = _Option(str_to_bytes(key = v[0]), str_to_bytes(value = v[1]))
 
-            self.gatt = libwarble.warble_gatt_create_with_options(len(options), coptions)
+            self.gatt = libwarble.warble_gatt_create_with_options(len(options), cast(coptions, POINTER(_Option)))
         else:
-            self.gatt = libwarble.warble_gatt_create(str_to_bytes(address))
+            self.gatt = libwarble.warble_gatt_create(str_to_bytes(mac))
 
         self.characteristics = {}
 

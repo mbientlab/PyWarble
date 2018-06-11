@@ -1,5 +1,5 @@
 from .cbindings import *
-from . import WarbleException, str_to_bytes, bytes_to_str
+from . import WarbleException, bytes_to_str
 
 import sys
 

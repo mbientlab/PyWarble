@@ -23,7 +23,7 @@ class _Gatt(Structure):
 class _Option(Structure):
     _fields_ = [
         ("key", c_char_p),
-        ("name", c_char_p)
+        ("value", c_char_p)
     ]
 
 class _GattChar(Structure):
@@ -43,7 +43,6 @@ elif (platform.system() == 'Linux'):
     libwarble = CDLL(os.path.join(os.path.dirname(__file__), 'libwarble.so'))
 else:
     raise RuntimeError("pywarble is not supported for the '%s' platform" % platform.system())
-
 
 libwarble.warble_lib_version.restype = c_char_p
 libwarble.warble_lib_version.argtypes = None

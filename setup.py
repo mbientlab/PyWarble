@@ -76,7 +76,7 @@ setup(
     keywords = ['mbientlab', 'bluetooth le', 'native'],
     python_requires='>=2.7',
     classifiers=[
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Stable',
         'Intended Audience :: Developers',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows :: Windows 10',
