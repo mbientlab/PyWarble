@@ -112,7 +112,7 @@ class GattChar:
         """
         self._private_edit_notifications(libwarble.warble_gattchar_disable_notifications_async, handler)
 
-    def set_value_changed_handler(self, handler):
+    def on_notification_received(self, handler):
         """
         Assigns a handler for characteristic notifications
         @params:
@@ -123,4 +123,4 @@ class GattChar:
             handler([value.contents[i] for i in range(0, length)])
         self.value_changed_wrapper = FnVoid_VoidP_WarbleGattCharP_UbyteP_Ubyte(value_converter)
         
-        libwarble.warble_gattchar_set_value_changed_handler(self.warble_char, None, self.value_changed_wrapper)
+        libwarble.warble_gattchar_on_notification_received(self.warble_char, None, self.value_changed_wrapper)

@@ -111,8 +111,8 @@ libwarble.warble_gattchar_write_async.argtypes = [POINTER(_GattChar), POINTER(c_
 libwarble.warble_gattchar_enable_notifications_async.restype = None
 libwarble.warble_gattchar_enable_notifications_async.argtypes = [POINTER(_GattChar), c_void_p, FnVoid_VoidP_WarbleGattCharP_CharP]
 
-libwarble.warble_gattchar_set_value_changed_handler.restype = None
-libwarble.warble_gattchar_set_value_changed_handler.argtypes = [POINTER(_GattChar), c_void_p, FnVoid_VoidP_WarbleGattCharP_UbyteP_Ubyte]
+libwarble.warble_gattchar_on_notification_received.restype = None
+libwarble.warble_gattchar_on_notification_received.argtypes = [POINTER(_GattChar), c_void_p, FnVoid_VoidP_WarbleGattCharP_UbyteP_Ubyte]
 
 libwarble.warble_gattchar_get_uuid.restype = c_char_p
 libwarble.warble_gattchar_get_uuid.argtypes = [POINTER(_GattChar)]
