@@ -1,6 +1,6 @@
 import sys
 
-class BleatException(Exception):
+class WarbleException(Exception):
     pass
 
 def str_to_bytes(value):

@@ -1,3 +1,3 @@
-[submodule "bleat"]
-	path = clibs/bleat
-	url = https://github.com/mbientlab/bleat.git
+[submodule "warble"]
+	path = clibs/warble
+	url = https://github.com/mbientlab/warble.git

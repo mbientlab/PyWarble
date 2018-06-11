@@ -26,39 +26,39 @@ class BleatBuild(build_py):
             if (call(["git", "submodule", "update", "--init", "--recursive"], cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Could not init git submodule")
 
-        dest = os.path.join("mbientlab", "bleat")
+        dest = os.path.join("mbientlab", "warble")
         if (platform.system() == 'Windows'):
-            vs2017 = os.path.join(clibs, 'bleat', 'vs2017')
-            if (call(["MSBuild.exe", "bleat.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release", "/p:SkipVersion=1"], cwd=vs2017, stderr=STDOUT) != 0):
-                raise RuntimeError("Failed to compile bleat.dll")
+            vs2017 = os.path.join(clibs, 'warble', 'vs2017')
+            if (call(["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release", "/p:SkipVersion=1"], cwd=vs2017, stderr=STDOUT) != 0):
+                raise RuntimeError("Failed to compile warble.dll")
 
-            dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Release", "bleat.dll")
+            dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Release", "warble.dll")
             move(dll, dest)
         elif (platform.system() == 'Linux'):
-            bleat = os.path.join(clibs, 'bleat')
-            if (call(["make", "-C", bleat, "-j%d" % (cpu_count()), "SKIP_VERSION=1"], cwd=root, stderr=STDOUT) != 0):
-                raise RuntimeError("Failed to compile libbleat.so")
+            warble = os.path.join(clibs, 'warble')
+            if (call(["make", "-C", warble, "-j%d" % (cpu_count()), "SKIP_VERSION=1"], cwd=root, stderr=STDOUT) != 0):
+                raise RuntimeError("Failed to compile libwarble.so")
 
-            so = os.path.join(bleat, 'dist', 'release', 'lib', machine)
-            BleatBuild._move(so, dest, 'libbleat.so')
+            so = os.path.join(warble, 'dist', 'release', 'lib', machine)
+            BleatBuild._move(so, dest, 'libwarble.so')
 
-            blepp = os.path.join(bleat, 'deps', 'libblepp')
+            blepp = os.path.join(warble, 'deps', 'libblepp')
             BleatBuild._move(blepp, dest, 'libble++.so')
         else:
-            raise RuntimeError("pybleat is not supported for the '%s' platform" % platform.system())
+            raise RuntimeError("pywarble is not supported for the '%s' platform" % platform.system())
 
         build_py.run(self)
 
-so_pkg_data = ['libbleat.so*', 'libble++.so*'] if platform.system() == 'Linux' else ['bleat.dll']
+so_pkg_data = ['libwarble.so*', 'libble++.so*'] if platform.system() == 'Linux' else ['warble.dll']
 setup(
-    name='bleat',
-    packages=['mbientlab', 'mbientlab.bleat'],
+    name='warble',
+    packages=['mbientlab', 'mbientlab.warble'],
     version='1.0.0',
-    description='Python bindings for MbientLab\'s bleat library',
+    description='Python bindings for MbientLab\'s Warble library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
-    package_data={'mbientlab.bleat': so_pkg_data},
+    package_data={'mbientlab.warble': so_pkg_data},
     include_package_data=True,
-    url='https://github.com/mbientlab/pybleat',
+    url='https://github.com/mbientlab/PywWrble',
     author='MbientLab',
     author_email="hello@mbientlab.com",
     cmdclass={

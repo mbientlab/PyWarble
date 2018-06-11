@@ -1,5 +1,5 @@
 from .cbindings import *
-from . import BleatException, str_to_bytes, bytes_to_str
+from . import WarbleException, str_to_bytes, bytes_to_str
 import sys
 
 if sys.version_info[0] == 2:
@@ -13,8 +13,8 @@ class BleScanner:
         @params:
             handler     - Required  : `(ScanResult): void` function that is executed when a device is discovered
         """
-        cls.scan_handler = FnVoid_VoidP_BleatScanResultP(lambda ctx, pointer: handler(ScanResult(pointer.contents)))
-        libbleat.bleat_scanner_set_handler(None, cls.scan_handler)
+        cls.scan_handler = FnVoid_VoidP_WarbleScanResultP(lambda ctx, pointer: handler(ScanResult(pointer.contents)))
+        libwarble.warble_scanner_set_handler(None, cls.scan_handler)
 
     @classmethod
     def start(cls, **kwargs):
@@ -33,16 +33,16 @@ class BleScanner:
             for i, e in enumerate(options):
                 coptions[i] = e
 
-            libbleat.bleat_scanner_start(len(options), coptions)
+            libwarble.warble_scanner_start(len(options), coptions)
         else:
-            libbleat.bleat_scanner_start(0, None)
+            libwarble.warble_scanner_start(0, None)
 
     @classmethod
     def stop(cls):
         """
         Stop BLE scanning
         """
-        libbleat.bleat_scanner_stop()
+        libwarble.warble_scanner_stop()
 
 class ScanResult:
     def __init__(self, result):
@@ -75,7 +75,7 @@ class ScanResult:
         @params:
             uuid        - Required  : 128-bit UUID string to search for
         """
-        return libbleat.bleat_scan_result_has_service_uuid(self.result, str_to_bytes(uuid)) != 0
+        return libwarble.warble_scan_result_has_service_uuid(self.result, str_to_bytes(uuid)) != 0
 
     def get_manufacturer_data(self, company_id):
         """
@@ -83,7 +83,7 @@ class ScanResult:
         @params:
             company_id  - Optional  : Unsigned short value to look up
         """
-        pointer = libbleat.bleat_scan_result_get_manufacturer_data(self.result, company_id)
+        pointer = libwarble.warble_scan_result_get_manufacturer_data(self.result, company_id)
 
         if bool(pointer):
             array = cast(pointer.contents.value, POINTER(c_ubyte * pointer.contents.value_size))

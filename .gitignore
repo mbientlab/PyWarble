@@ -1,6 +1,6 @@
 /build/
 /dist/
-/bleat.egg-info/
-mbientlab/bleat/*.so*
-mbientlab/bleat/*.dll*
+/warble.egg-info/
+mbientlab/warble/*.so*
+mbientlab/warble/*.dll*
 *.pyc
