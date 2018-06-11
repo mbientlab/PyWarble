@@ -67,7 +67,7 @@ setup(
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
     package_data={'mbientlab.warble': so_pkg_data},
     include_package_data=True,
-    url='https://github.com/mbientlab/PywWrble',
+    url='https://github.com/mbientlab/PyWarble',
     author='MbientLab',
     author_email="hello@mbientlab.com",
     cmdclass={
@@ -76,7 +76,7 @@ setup(
     keywords = ['mbientlab', 'bluetooth le', 'native'],
     python_requires='>=2.7',
     classifiers=[
-        'Development Status :: 5 - Stable',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows :: Windows 10',
