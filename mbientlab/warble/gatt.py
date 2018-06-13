@@ -28,7 +28,7 @@ class Gatt:
 
             coptions = (_Option * len(options))()
             for i, v in enumerate(options):
-                coptions[i] = _Option(str_to_bytes(key = v[0]), str_to_bytes(value = v[1]))
+                coptions[i] = _Option(key = str_to_bytes(v[0]), value = str_to_bytes(v[1]))
 
             self.gatt = libwarble.warble_gatt_create_with_options(len(options), cast(coptions, POINTER(_Option)))
         else:
