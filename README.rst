@@ -1,6 +1,6 @@
-PyBleat
-#######
-PyBleat provides Python classes that wrap around the exported functions of the `Warble <https://github.com/mbientlab/Warble>`_ 
+PyWarble
+########
+PyWarble provides Python classes that wrap around the exported functions of the `Warble <https://github.com/mbientlab/Warble>`_ 
 C library.  
 
 Install
