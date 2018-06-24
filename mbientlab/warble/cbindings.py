@@ -39,7 +39,6 @@ FnVoid_VoidP_WarbleGattCharP_UbyteP_Ubyte = CFUNCTYPE(None, c_void_p, POINTER(_G
 if (platform.system() == 'Windows'):
     libwarble = CDLL(os.path.join(os.path.dirname(__file__), 'warble.dll'))
 elif (platform.system() == 'Linux'):
-    libblepp = CDLL(os.path.join(os.path.dirname(__file__), 'libble++.so'), mode = RTLD_GLOBAL)
     libwarble = CDLL(os.path.join(os.path.dirname(__file__), 'libwarble.so'))
 else:
     raise RuntimeError("pywarble is not supported for the '%s' platform" % platform.system())

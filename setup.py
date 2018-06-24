@@ -11,7 +11,7 @@ import sys
 
 machine = "arm" if "arm" in platform.machine() else ("x64" if sys.maxsize > 2**32 else "x86")
 
-class BleatBuild(build_py):
+class WarbleBuild(build_py):
     @staticmethod
     def _move(src, dest, basename):
         for f in os.listdir(src):
@@ -49,20 +49,17 @@ class BleatBuild(build_py):
                 raise RuntimeError("Failed to compile libwarble.so")
 
             so = os.path.join(warble, 'dist', 'release', 'lib', machine)
-            BleatBuild._move(so, dest, 'libwarble.so')
-
-            blepp = os.path.join(warble, 'deps', 'libblepp')
-            BleatBuild._move(blepp, dest, 'libble++.so')
+            WarbleBuild._move(so, dest, 'libwarble.so')
         else:
             raise RuntimeError("pywarble is not supported for the '%s' platform" % platform.system())
 
         build_py.run(self)
 
-so_pkg_data = ['libwarble.so*', 'libble++.so*'] if platform.system() == 'Linux' else ['warble.dll']
+so_pkg_data = ['libwarble.so*'] if platform.system() == 'Linux' else ['warble.dll']
 setup(
     name='warble',
     packages=['mbientlab', 'mbientlab.warble'],
-    version='1.0.2',
+    version='1.0.5',
     description='Python bindings for MbientLab\'s Warble library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
     package_data={'mbientlab.warble': so_pkg_data},
@@ -71,7 +68,7 @@ setup(
     author='MbientLab',
     author_email="hello@mbientlab.com",
     cmdclass={
-        'build_py': BleatBuild,
+        'build_py': WarbleBuild,
     },
     keywords = ['mbientlab', 'bluetooth le', 'native'],
     python_requires='>=2.7',
