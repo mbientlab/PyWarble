@@ -17,3 +17,5 @@ recursive-exclude * *.gitmodules
 recursive-exclude * *.gitignore
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
+recursive-exclude * *.d
+recursive-exclude * *.o
