@@ -19,3 +19,5 @@ recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
 recursive-exclude * *.d
 recursive-exclude * *.o
+recursive-exclude * *.so
+recursive-exclude * *.a
