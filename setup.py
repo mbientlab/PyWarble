@@ -1,3 +1,4 @@
+from distutils.command.clean import clean
 from distutils.dir_util import copy_tree
 from multiprocessing import cpu_count
 from shutil import move 
@@ -10,6 +11,20 @@ import platform
 import sys
 
 machine = "arm" if "arm" in platform.machine() else ("x64" if sys.maxsize > 2**32 else "x86")
+root = os.path.dirname(os.path.abspath(__file__))
+warble = os.path.join(root, 'clibs', 'warble')
+dest = os.path.join("mbientlab", "warble")
+
+class WarbleClean(clean):
+    def run(self):
+        if (platform.system() == 'Windows'):
+            dll = os.path.join(dest, "warble.dll")
+            if os.path.isfile(dll):
+                os.remove(dll)
+        elif (platform.system() == 'Linux'):
+            for f in os.listdir(dest):
+                if (f.startswith("libwarble")):
+                    os.remove(os.path.join(dest, f))
 
 class WarbleBuild(build_py):
     @staticmethod
@@ -19,16 +34,12 @@ class WarbleBuild(build_py):
                 move(os.path.join(src, f), dest)
 
     def run(self):
-        root = os.path.dirname(os.path.abspath(__file__))
-        clibs = os.path.join(root, 'clibs')
-        warble = os.path.join(clibs, 'warble')
         version_mk = os.path.join(warble, "version.mk")
 
         if os.path.exists(os.path.join(root, '.git')):
             if (call(["git", "submodule", "update", "--init", "--recursive"], cwd=root, stderr=STDOUT) != 0):
                 raise RuntimeError("Could not init git submodule")
 
-        dest = os.path.join("mbientlab", "warble")
         if (platform.system() == 'Windows'):
             args = ["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"]
             if (os.path.exists(version_mk)):
@@ -59,7 +70,7 @@ so_pkg_data = ['libwarble.so*'] if platform.system() == 'Linux' else ['warble.dl
 setup(
     name='warble',
     packages=['mbientlab', 'mbientlab.warble'],
-    version='1.0.7',
+    version='1.0.9',
     description='Python bindings for MbientLab\'s Warble library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
     package_data={'mbientlab.warble': so_pkg_data},
@@ -69,6 +80,7 @@ setup(
     author_email="hello@mbientlab.com",
     cmdclass={
         'build_py': WarbleBuild,
+        'clean': WarbleClean
     },
     keywords = ['mbientlab', 'bluetooth le', 'native'],
     python_requires='>=2.7',
