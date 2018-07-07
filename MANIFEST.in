@@ -1,23 +1,24 @@
 include LICENSE.md
 include README.rst
 
-recursive-include clibs *
+graft clibs
 prune clibs/warble/build
 prune clibs/warble/dist
-prune clibs/warble/vs2017/**/Debug
-prune clibs/warble/vs2017/**/Release
-prune clibs/warble/vs2017/**/x64
+prune clibs/warble/vs2017/*/Debug
+prune clibs/warble/vs2017/*/Release
+prune clibs/warble/vs2017/*/x64
 prune clibs/warble/vs2017/.vs
 recursive-exclude clibs/warble/deps/libblepp config.log config.status generated libblepp.pc Makefile
 
-recursive-include mbientlab *.py
+graft mbientlab
 
-recursive-exclude * *.git
-recursive-exclude * *.gitmodules
-recursive-exclude * *.gitignore
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
-recursive-exclude * *.d
-recursive-exclude * *.o
-recursive-exclude * *.so
-recursive-exclude * *.a
+global-exclude *.git
+global-exclude *.gitmodules
+global-exclude *.gitignore
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude *.d
+global-exclude *.o
+global-exclude *.so
+global-exclude *.dll
+global-exclude *.a
