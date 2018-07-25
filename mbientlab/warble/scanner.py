@@ -1,4 +1,5 @@
 from .cbindings import *
+from .cbindings import _Option
 from . import WarbleException, str_to_bytes, bytes_to_str
 import sys
 
@@ -22,16 +23,19 @@ class BleScanner:
         Start BLE scanning
         @params:
             hci         - Optional  : mac address of the hci device to use, only applicable on Linux
+            scan_type   - Optional  : type of ble scan to perform, either 'passive' or 'active'
         """
         if (len(kwargs) != 0):
             options = []
 
             if ('hci' in kwargs and platform.system() == 'Linux'):
-                options.append(_Option(key="hci", value=kwargs['hci']))
+                options.append(["hci", kwargs['hci']])
+            if ('scan_type' in kwargs):
+                options.append(["scan-type", kwargs['scan_type']])
             
-            coptions = (_Option * len(options))
+            coptions = (_Option * len(options))()
             for i, e in enumerate(options):
-                coptions[i] = e
+                coptions[i] = _Option(key = str_to_bytes(e[0]), value = str_to_bytes(e[1]))
 
             libwarble.warble_scanner_start(len(options), coptions)
         else:

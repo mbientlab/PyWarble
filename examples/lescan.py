@@ -18,8 +18,13 @@ def scan_result_printer(result):
     print("======")
     
 BleScanner.set_handler(scan_result_printer)
+
+print("-- active scan --")
 BleScanner.start()
+sleep(5.0)
+BleScanner.stop()
 
-sleep(10.0)
-
+print("-- passive scan --")
+BleScanner.start(**{'scan_type': 'passive'})
+sleep(5.0)
 BleScanner.stop()

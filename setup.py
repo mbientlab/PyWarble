@@ -70,7 +70,7 @@ so_pkg_data = ['libwarble.so*'] if platform.system() == 'Linux' else ['warble.dl
 setup(
     name='warble',
     packages=['mbientlab', 'mbientlab.warble'],
-    version='1.0.10',
+    version='1.1.0',
     description='Python bindings for MbientLab\'s Warble library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
     package_data={'mbientlab.warble': so_pkg_data},
