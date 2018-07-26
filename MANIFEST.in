@@ -19,6 +19,6 @@ global-exclude __pycache__
 global-exclude *.py[co]
 global-exclude *.d
 global-exclude *.o
-global-exclude *.so
+global-exclude *.so*
 global-exclude *.dll
 global-exclude *.a
