@@ -24,7 +24,7 @@ class Gatt:
             if ('hci' in kwargs and platform.system() == 'Linux'):
                 options.append(['hci', kwargs['hci']])
             if ('addr_type' in kwargs):
-                options.append(['addr_type', kwargs['addr_type']])
+                options.append(['address-type', kwargs['addr_type']])
 
             coptions = (_Option * len(options))()
             for i, v in enumerate(options):
