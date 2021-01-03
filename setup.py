@@ -27,11 +27,7 @@ def _execute(**kwargs):
 
 class WarbleClean(clean):
     def run(self):
-        if platform.system() == 'Windows':
-            dll = os.path.join(dest, "warble.dll")
-            if os.path.isfile(dll):
-                os.remove(dll)
-        elif platform.system() == 'Linux':
+        if platform.system() == 'Linux':
             for f in os.listdir(dest):
                 if (f.startswith("libwarble")):
                     os.remove(os.path.join(dest, f))
@@ -55,24 +51,7 @@ class WarbleBuild(build_py):
                 root=root
             )
 
-        if platform.system() == 'Windows':
-            args = ["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"]
-            if (os.path.exists(version_mk)):
-                args.append("/p:SkipVersion=1")
-
-            vs2017 = os.path.join(warble, 'vs2017')
-
-            _execute(
-                msg="Compiling Warble C++ SDK for Windows",
-                error_msg="Failed to compile warble.dll",
-                args=args,
-                root=vs2017
-            )
-
-            logging.info("Moving warble.dll to %s" % dest)
-            dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Release", "warble.dll")
-            move(dll, dest)
-        elif platform.system() == 'Linux':
+        if platform.system() == 'Linux':
             args = ["make", "-C", warble, "-j%d" % (cpu_count())]
             if (os.path.exists(version_mk)):
                 args.append("SKIP_VERSION=1")
