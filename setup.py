@@ -96,7 +96,7 @@ so_pkg_data = ['libwarble.so*'] if platform.system() == 'Linux' else ['warble.dl
 setup(
     name='warble',
     packages=['mbientlab', 'mbientlab.warble'],
-    version='1.2.1',
+    version='1.2.6',
     description='Python bindings for MbientLab\'s Warble library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
     package_data={'mbientlab.warble': so_pkg_data},
@@ -109,13 +109,12 @@ setup(
         'clean': WarbleClean
     },
     keywords = ['mbientlab', 'bluetooth le', 'native'],
-    python_requires='>=2.7',
+    python_requires='>=3.4',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Operating System :: POSIX :: Linux',
         'Operating System :: Microsoft :: Windows :: Windows 10',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
     ]
 )
