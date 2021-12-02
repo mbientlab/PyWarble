@@ -1,7 +1,7 @@
 from distutils.command.clean import clean
 from distutils.dir_util import copy_tree
 from multiprocessing import cpu_count
-from shutil import move 
+from shutil import move, copy2
 from subprocess import call, STDOUT
 from setuptools import setup
 from setuptools.command.build_py import build_py
@@ -56,22 +56,23 @@ class WarbleBuild(build_py):
             )
 
         if platform.system() == 'Windows':
-            args = ["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"]
-            if (os.path.exists(version_mk)):
-                args.append("/p:SkipVersion=1")
-
             vs2017 = os.path.join(warble, 'vs2017')
+            dist_dir = os.path.join(vs2017, 'dist', 'release', 'lib', 'Win32' if machine == 'x86' else machine)
+            dll = os.path.join(dist_dir, "warble.dll")
+            if not os.path.exists(dll):
+                args = ["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"]
+                if (os.path.exists(version_mk)):
+                    args.append("/p:SkipVersion=1")
 
-            _execute(
-                msg="Compiling Warble C++ SDK for Windows",
-                error_msg="Failed to compile warble.dll",
-                args=args,
-                root=vs2017
-            )
+                _execute(
+                    msg="Compiling Warble C++ SDK for Windows",
+                    error_msg="Failed to compile warble.dll",
+                    args=args,
+                    root=vs2017
+                )
 
-            logging.info("Moving warble.dll to %s" % dest)
-            dll = os.path.join(vs2017, "" if machine == "x86" else machine, "Release", "warble.dll")
-            move(dll, dest)
+            logging.info("Copying warble.dll to %s" % dest)
+            copy2(dll, dest)
         elif platform.system() == 'Linux':
             args = ["make", "-C", warble, "-j%d" % (cpu_count())]
             if (os.path.exists(version_mk)):
