@@ -1,7 +1,7 @@
 from distutils.command.clean import clean
 from distutils.dir_util import copy_tree
 from multiprocessing import cpu_count
-from shutil import move 
+from shutil import move, copy2
 from subprocess import call, STDOUT
 from setuptools import setup
 from setuptools.command.build_py import build_py
@@ -27,7 +27,11 @@ def _execute(**kwargs):
 
 class WarbleClean(clean):
     def run(self):
-        if platform.system() == 'Linux':
+        if platform.system() == 'Windows':
+            dll = os.path.join(dest, "warble.dll")
+            if os.path.isfile(dll):
+                os.remove(dll)
+        elif platform.system() == 'Linux':
             for f in os.listdir(dest):
                 if (f.startswith("libwarble")):
                     os.remove(os.path.join(dest, f))
@@ -51,7 +55,25 @@ class WarbleBuild(build_py):
                 root=root
             )
 
-        if platform.system() == 'Linux':
+        if platform.system() == 'Windows':
+            vs2017 = os.path.join(warble, 'vs2017')
+            dist_dir = os.path.join(vs2017, 'dist', 'release', 'lib', 'Win32' if machine == 'x86' else machine)
+            dll = os.path.join(dist_dir, "warble.dll")
+            if not os.path.exists(dll):
+                args = ["MSBuild.exe", "warble.vcxproj", "/p:Platform=%s" % machine, "/p:Configuration=Release"]
+                if (os.path.exists(version_mk)):
+                    args.append("/p:SkipVersion=1")
+
+                _execute(
+                    msg="Compiling Warble C++ SDK for Windows",
+                    error_msg="Failed to compile warble.dll",
+                    args=args,
+                    root=vs2017
+                )
+
+            logging.info("Copying warble.dll to %s" % dest)
+            copy2(dll, dest)
+        elif platform.system() == 'Linux':
             args = ["make", "-C", warble, "-j%d" % (cpu_count())]
             if (os.path.exists(version_mk)):
                 args.append("SKIP_VERSION=1")
@@ -75,7 +97,7 @@ so_pkg_data = ['libwarble.so*'] if platform.system() == 'Linux' else ['warble.dl
 setup(
     name='warble',
     packages=['mbientlab', 'mbientlab.warble'],
-    version='1.2.6',
+    version='1.2.7',
     description='Python bindings for MbientLab\'s Warble library',
     long_description=open(os.path.join(os.path.dirname(__file__), "README.rst")).read(),
     package_data={'mbientlab.warble': so_pkg_data},
@@ -93,6 +115,7 @@ setup(
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Operating System :: POSIX :: Linux',
+        'Operating System :: Microsoft :: Windows :: Windows 10',
         'Programming Language :: Python :: 3',
     ]
 )
