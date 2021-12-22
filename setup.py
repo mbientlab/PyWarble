@@ -27,11 +27,7 @@ def _execute(**kwargs):
 
 class WarbleClean(clean):
     def run(self):
-        if platform.system() == 'Windows':
-            dll = os.path.join(dest, "warble.dll")
-            if os.path.isfile(dll):
-                os.remove(dll)
-        elif platform.system() == 'Linux':
+        if platform.system() == 'Linux':
             for f in os.listdir(dest):
                 if (f.startswith("libwarble")):
                     os.remove(os.path.join(dest, f))

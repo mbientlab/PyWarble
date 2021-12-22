@@ -15,12 +15,6 @@ As this project requires compiling the ``warble`` C library, you will need to co
 appropriate build environment before running ``pip`` as described in warble's 
 `README <https://github.com/mbientlab/Warble/blob/master/README.md#build>`_.  
 
-Windows
-=======
-The setup script will build the dll with ``MSBuild``.  Make sure your ``Path`` system variable has an entry pointing to the 
-``MSBuild`` executable and that you have the necessary 
-`Windows 10 SDK <https://github.com/mbientlab/Warble/blob/master/README.md#windows-10>`_ installed.  
-
 Linux
 =====
 Install the required tools and packages detailed in the `Linux <https://github.com/mbientlab/Warble/blob/master/README.md#linux>`_ 
