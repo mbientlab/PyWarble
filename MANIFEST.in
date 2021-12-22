@@ -4,9 +4,6 @@ include README.rst
 graft clibs
 prune clibs/warble/build
 prune clibs/warble/dist
-prune clibs/warble/vs2017/*/Debug
-prune clibs/warble/vs2017/*/Release
-prune clibs/warble/vs2017/*/x64
 prune clibs/warble/vs2017/.vs
 recursive-exclude clibs/warble/deps/libblepp config.log config.status generated libblepp.pc Makefile
 
@@ -20,5 +17,11 @@ global-exclude *.py[co]
 global-exclude *.d
 global-exclude *.o
 global-exclude *.so*
-global-exclude *.dll
+global-exclude *.tlog
+global-exclude *.obj
+global-exclude *.iobj
+global-exclude *.pdb
+global-exclude *.lib
+global-exclude *.ipdb
+global-exclude *.exp
 global-exclude *.a
