@@ -12,7 +12,15 @@ import sys
 
 logging.basicConfig(level=logging.INFO)
 
-machine = "arm" if ("arm" in platform.machine()) or ("aarch64" in platform.machine()) else ("x64" if sys.maxsize > 2**32 else "x86")
+if "arm" in platform.machine():
+    machine = "arm"
+elif "aarch64" in platform.machine():
+    machine = "aarch64"
+elif sys.maxsize > 2**32:
+    machine = "x64"
+else:
+    machine = "x86"
+
 root = os.path.dirname(os.path.abspath(__file__))
 warble = os.path.join(root, 'clibs', 'warble')
 dest = os.path.join("mbientlab", "warble")
